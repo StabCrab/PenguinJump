@@ -50,7 +50,7 @@ GameWorld::~GameWorld()
 void GameWorld::draw(sf::RenderWindow& window, float deltaTime)
 {
     text.setString(s);
-    if (isCommandsLeft && currentUnit->getState() == UnitState ::idle&&(terrain.getPixel(currentUnit->getBottomCoordinates()) != sf::Color::Transparent
+    if (isCommandsLeft && currentUnit->getState() == UnitState ::idle &&(terrain.getPixel(currentUnit->getBottomCoordinates()) != sf::Color::Transparent
                                                                         || terrain.getPixel(currentUnit->getLeftBottomCoordinates()) != sf::Color::Transparent ||
                                                                         terrain.getPixel(currentUnit->getRightBottomCoordinates()) != sf::Color::Transparent))
     {
@@ -108,6 +108,8 @@ void GameWorld::keyPressedEvent(sf::Keyboard::Key key, float deltaTime)
     {
         return;
     }
+    if (s == "Victory" || s =="Key acquired")
+        s.clear();
     switch (key)
     {
         case sf::Keyboard::Q:
@@ -223,12 +225,11 @@ void GameWorld::keyPressedEvent(sf::Keyboard::Key key, float deltaTime)
             break;
         case sf::Keyboard::Enter:
         {
-            remain = s;
-            scan();
-            if (curWord == "STOP")
+            if (until == INT_MAX)
+            {
                 Stop();
-            else
-                remain = s;
+            }
+            remain = s;
             s.clear();
             isCommandsLeft = true;
             break;
@@ -358,21 +359,13 @@ void GameWorld::Efunc()
     {
         Stop();
     }
-    if (curWord == "JUMP")
+    if (curWord == "JUMP" || curWord == "GO" || curWord == "TURN")
     {
-        Jump();
-    }
-    if (curWord == "GO")
-    {
-        Go();
-    }
-    if (curWord == "TURN")
-    {
-        Turn();
+        Dir();
     }
     if (curWord == "OPEN")
     {
-        Open();
+        Item();
     }
     if (curWord == "DOIT")
     {
@@ -384,35 +377,7 @@ void GameWorld::Efunc()
 
 void GameWorld::Stop()
 {
-    scan();
-    if (curWord.empty())
-        until = -2;
-}
-
-void GameWorld::Go()
-{
-    scan();
-    if (curWord == "LEFT")
-    {
-        Left();
-    }
-    if (curWord == "RIGHT")
-    {
-        Right();
-    }
-}
-
-void GameWorld::Jump()
-{
-    scan();
-    if (curWord == "RIGHT")
-    {
-        Right();
-    }
-    else if (curWord == "LEFT")
-    {
-        Left();
-    }
+    until = -2;
 }
 
 void GameWorld::scan()
@@ -436,119 +401,107 @@ void GameWorld::scan()
     }
 }
 
-void GameWorld::Right()
-{
-    if (prevWord == "GO")
-    {
-        scan();
-        if (curWord.empty())
-        {
-            until = INT_MAX;
-        }
-        else
-        {
-            if (isNumber(curWord))
-            {
-                until = clock() + std::stoi(curWord) * 500;
-            }
-        }
-        isGoingLeft = false;
-    }
-    else if (prevWord == "JUMP")
-    {
-        if (currentUnit->getIsFaceRight())
-        {
-            currentUnit->jumpForward();
-        }
-        else
-        {
-            currentUnit->jumpBackwards();
-        }
-    }
-    else if (prevWord == "TURN")
-    {
-        currentUnit->walk(0.1, true);
-    }
-}
 
-void GameWorld::Left()
-{
-    if (prevWord == "GO")
-    {
-        scan();
-        if (curWord.empty())
-        {
-            until = INT_MAX;
-        }
-        else
-        {
-            if (isNumber(curWord))
-            {
-                until = clock() + std::stoi(curWord) * 500;
-            }
-        }
-        isGoingLeft = true;
-    }
-    else if (prevWord == "JUMP")
-    {
-        if (currentUnit->getIsFaceRight())
-        {
-            currentUnit->jumpBackwards();
-        }
-        else
-        {
-            currentUnit->jumpForward();
-        }
-    }
-    else if (prevWord == "TURN")
-    {
-        currentUnit->walk(0.1, false);
-    }
-}
 
-void GameWorld::Turn()
+void GameWorld::Dir()
 {
     scan();
-    if (curWord == "LEFT")
-    {
-        Left();
-    }
     if (curWord == "RIGHT")
     {
-        Right();
+        if (prevWord == "GO")
+        {
+            scan();
+            if (curWord.empty())
+            {
+                until = INT_MAX;
+            }
+            else
+            {
+                num();
+            }
+            isGoingLeft = false;
+        }
+        else if (prevWord == "JUMP")
+        {
+            if (currentUnit->getIsFaceRight())
+            {
+                currentUnit->jumpForward();
+            }
+            else
+            {
+                currentUnit->jumpBackwards();
+            }
+        }
+        else if (prevWord == "TURN")
+        {
+            currentUnit->walk(0.1, true);
+        }
+    }
+    else if (curWord == "LEFT")
+    {
+        if (prevWord == "GO")
+        {
+            scan();
+            if (curWord.empty())
+            {
+                until = INT_MAX;
+            }
+            else
+            {
+                num();
+            }
+            isGoingLeft = true;
+        }
+        else if (prevWord == "JUMP")
+        {
+            if (currentUnit->getIsFaceRight())
+            {
+                currentUnit->jumpBackwards();
+            }
+            else
+            {
+                currentUnit->jumpForward();
+            }
+        }
+        else if (prevWord == "TURN")
+        {
+            currentUnit->walk(0.1, false);
+        }
     }
 }
 
-void GameWorld::Open()
+void GameWorld::Item()
 {
     scan();
     if (curWord == "CHEST")
     {
-        Chest();
+        if (prevWord == "OPEN")
+        {
+            if (std::abs(currentUnit->open().x - chest->getPosition().x) < 100 && std::abs(currentUnit->open().y - chest->getPosition().y) < 100)
+            {
+                currentUnit->giveKey();
+                s = "Key acquired";
+            }
+        }
     }
     if (curWord == "DOOR")
     {
-        Door();
-    }
-}
-
-void GameWorld::Chest()
-{
-    if (prevWord == "OPEN")
-    {
-        if (std::abs(currentUnit->open().x - chest->getPosition().x) < 100 && std::abs(currentUnit->open().y - chest->getPosition().y) < 100)
+        if (prevWord == "OPEN")
         {
-            currentUnit->giveKey();
-            s = "Key acquired";
+            if (std::abs(currentUnit->open().x - door->getPosition().x) < 100 && std::abs(currentUnit->open().y - door->getPosition().y) < 100 && currentUnit->getHasKey())
+                s = "Victory";
         }
     }
 }
 
-void GameWorld::Door()
+void GameWorld::num()
 {
-    if (prevWord == "OPEN")
+    if (isNumber(curWord))
     {
-        if (std::abs(currentUnit->open().x - door->getPosition().x) < 100 && std::abs(currentUnit->open().y - door->getPosition().y) < 100 && currentUnit->getHasKey())
-            s = "Victory";
+        until = clock() + std::stoi(curWord) * 500;
+    }
+    else
+    {
+        until = INT_MAX;
     }
 }

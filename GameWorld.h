@@ -43,15 +43,11 @@ private:
     bool isCommandsLeft = false;
 
     void Efunc();
-    void Go();
-    void Right();
-    void Left();
-    void Jump();
+    void Dir();
+    void Item();
+
+    void num();
     void Stop();
-    void Turn();
-    void Open();
-    void Chest();
-    void Door();
     void scan();
 
     std::string remain;

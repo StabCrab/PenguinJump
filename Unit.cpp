@@ -97,6 +97,8 @@ bool Unit::getIsOutOfBounds() {
 
 void Unit::jumpForward()
 {
+    if (state == UnitState::walking)
+        idle(0.1);
     sf::Vector2f movement;
     if (isFaceRight)
         movement = sf::Vector2f(12, -6);
@@ -107,6 +109,8 @@ void Unit::jumpForward()
 
 void Unit::jumpBackwards()
 {
+    if (state == UnitState::walking)
+        idle(0.1);
     sf::Vector2f movement;
     if (isFaceRight)
         movement = sf::Vector2f(-6, -12);
