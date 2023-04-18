@@ -46,7 +46,7 @@ private:
     void Efunc();
     void Dir();
     void Item();
-
+    void G();
     void num();
     void Stop();
     void scan();

@@ -399,15 +399,7 @@ void GameWorld::Efunc()
     }
     if (curWord == "GO")
     {
-        scan();
-        if (curWord == "RIGHT" || curWord == "LEFT")
-        {
-            Dir();
-        }
-        else if (curWord == "TO")
-        {
-            Item();
-        }
+       G();
     }
     if (curWord == "JUMP" || curWord == "TURN")
     {
@@ -567,5 +559,18 @@ void GameWorld::num()
     else
     {
         until = INT_MAX;
+    }
+}
+
+void GameWorld::G()
+{
+    scan();
+    if (curWord == "RIGHT" || curWord == "LEFT")
+    {
+        Dir();
+    }
+    else if (curWord == "TO")
+    {
+        Item();
     }
 }
