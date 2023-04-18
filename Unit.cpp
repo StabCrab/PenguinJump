@@ -40,8 +40,8 @@ void Unit::idle(float deltaTime)
 
 void Unit::walk(float deltaTime, bool isGoingRight)
 {
-    if (deltaTime > 1)
-        return;
+//    if (deltaTime > 1)
+//        return;
     sf::Vector2f movement(0,0);
     if(isGoingRight)
     {
@@ -95,27 +95,27 @@ bool Unit::getIsOutOfBounds() {
     return isOutOfBounds;
 }
 
-void Unit::jumpForward()
+void Unit::jumpForward(float deltaTime)
 {
     if (state == UnitState::walking)
         idle(0.1);
     sf::Vector2f movement;
     if (isFaceRight)
-        movement = sf::Vector2f(12, -6);
+        movement = sf::Vector2f(1200.f, -600.f) * deltaTime;
     else
-        movement = sf::Vector2f(-12, -6);
+        movement = sf::Vector2f(-1200.f, -600.f) * deltaTime;
     addVectorToMomentum(movement);
 }
 
-void Unit::jumpBackwards()
+void Unit::jumpBackwards(float deltaTime)
 {
     if (state == UnitState::walking)
-        idle(0.1);
+        idle(deltaTime);
     sf::Vector2f movement;
     if (isFaceRight)
-        movement = sf::Vector2f(-6, -12);
+        movement = sf::Vector2f(-600.f, -1200.f) * deltaTime;
     else
-        movement = sf::Vector2f(6, -12);
+        movement = sf::Vector2f(600.f, -1200.f) * deltaTime;
     addVectorToMomentum(movement);
 }
 
@@ -130,6 +130,34 @@ bool Unit::getHasKey() {
 
 bool Unit::giveKey() {
     hasKey = true;
+}
+
+void Unit::goToChest()
+{
+    isGoingToChest = true;
+}
+
+void Unit::goToDoor()
+{
+    isGoingToDoor = true;
+}
+
+void Unit::stopGoingToChest()
+{
+    isGoingToChest = false;
+}
+
+void Unit::stopGoingToDoor()
+{
+    isGoingToDoor = false;
+}
+
+bool Unit::getGoingToChest() {
+    return isGoingToChest;
+}
+
+bool Unit::getGoingToDoor() {
+    return isGoingToDoor;
 }
 
 

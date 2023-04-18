@@ -49,6 +49,7 @@ GameWorld::~GameWorld()
 
 void GameWorld::draw(sf::RenderWindow& window, float deltaTime)
 {
+    this->deltaTime = deltaTime;
     text.setString(s);
     if (isCommandsLeft && currentUnit->getState() == UnitState ::idle &&(terrain.getPixel(currentUnit->getBottomCoordinates()) != sf::Color::Transparent
                                                                         || terrain.getPixel(currentUnit->getLeftBottomCoordinates()) != sf::Color::Transparent ||
@@ -56,6 +57,8 @@ void GameWorld::draw(sf::RenderWindow& window, float deltaTime)
     {
         Efunc();
     }
+
+
     door->drawBody(window);
     chest->drawBody(window);
     clock_t a = clock();
@@ -63,11 +66,44 @@ void GameWorld::draw(sf::RenderWindow& window, float deltaTime)
     {
         movement(isGoingLeft);
     }
+    else if (currentUnit->getGoingToChest())
+    {
+        if (chest->getPosition().x < currentUnit->getPosition().x)
+        {
+            movement(true);
+        }
+        else if (chest->getPosition().x > currentUnit->getPosition().x)
+        {
+            movement(false);
+        }
+
+        if (std::abs(currentUnit->getPosition().x - chest->getPosition().x) < 50 || std::abs(chest->getPosition().y - currentUnit->getPosition().y) > 200)
+        {
+            currentUnit->stopGoingToChest();
+        }
+    }
+    else if (currentUnit->getGoingToDoor())
+    {
+        if (door->getPosition().x < currentUnit->getPosition().x)
+        {
+            movement(true);
+        }
+        else if (door->getPosition().x > currentUnit->getPosition().x)
+        {
+            movement(false);
+        }
+
+        if (std::abs(currentUnit->getPosition().x - door->getPosition().x) < 50  || std::abs(door->getPosition().y - currentUnit->getPosition().y) > 200)
+        {
+            currentUnit->stopGoingToDoor();
+        }
+    }
+
     else
     {
         if (currentUnit->getState() != UnitState::idle)
         {
-            currentUnit->idle(0.05);
+            currentUnit->idle(deltaTime);
         }
     }
     if (gameState == GameState::shuttingDown)
@@ -335,11 +371,11 @@ void GameWorld::movement(bool isLeft)
 {
     if (isLeft)
     {
-        currentUnit->walk(0.05, false);
+        currentUnit->walk(deltaTime, false);
     }
     else
     {
-        currentUnit->walk(0.05, true);
+        currentUnit->walk(deltaTime, true);
     }
 }
 
@@ -354,13 +390,28 @@ bool GameWorld::isNumber(std::string string) {
 
 void GameWorld::Efunc()
 {
+    currentUnit->stopGoingToChest();
+    currentUnit->stopGoingToDoor();
     scan();
     if (curWord == "STOP")
     {
         Stop();
     }
-    if (curWord == "JUMP" || curWord == "GO" || curWord == "TURN")
+    if (curWord == "GO")
     {
+        scan();
+        if (curWord == "RIGHT" || curWord == "LEFT")
+        {
+            Dir();
+        }
+        else if (curWord == "TO")
+        {
+            Item();
+        }
+    }
+    if (curWord == "JUMP" || curWord == "TURN")
+    {
+        scan();
         Dir();
     }
     if (curWord == "OPEN")
@@ -369,7 +420,7 @@ void GameWorld::Efunc()
     }
     if (curWord == "DOIT")
     {
-        remain = "GO RIGHT 2 TURN LEFT JUMP RIGHT GO LEFT 2 TURN RIGHT JUMP LEFT GO RIGHT 2 TURN LEFT JUMP RIGHT TURN RIGHT JUMP RIGHT OPEN CHEST GO RIGHT 7 OPEN DOOR";
+        remain = "GO RIGHT 2 TURN LEFT JUMP RIGHT GO LEFT 2 TURN RIGHT JUMP LEFT GO RIGHT 2 TURN LEFT JUMP RIGHT TURN RIGHT JUMP RIGHT GO TO CHEST OPEN CHEST GO RIGHT 3  GO TO DOOR OPEN DOOR";
     }
     if (remain.empty())
         isCommandsLeft = false;
@@ -405,7 +456,6 @@ void GameWorld::scan()
 
 void GameWorld::Dir()
 {
-    scan();
     if (curWord == "RIGHT")
     {
         if (prevWord == "GO")
@@ -425,16 +475,16 @@ void GameWorld::Dir()
         {
             if (currentUnit->getIsFaceRight())
             {
-                currentUnit->jumpForward();
+                currentUnit->jumpForward(deltaTime);
             }
             else
             {
-                currentUnit->jumpBackwards();
+                currentUnit->jumpBackwards(deltaTime);
             }
         }
         else if (prevWord == "TURN")
         {
-            currentUnit->walk(0.1, true);
+            currentUnit->walk(deltaTime, true);
         }
     }
     else if (curWord == "LEFT")
@@ -456,16 +506,16 @@ void GameWorld::Dir()
         {
             if (currentUnit->getIsFaceRight())
             {
-                currentUnit->jumpBackwards();
+                currentUnit->jumpBackwards(deltaTime);
             }
             else
             {
-                currentUnit->jumpForward();
+                currentUnit->jumpForward(deltaTime);
             }
         }
         else if (prevWord == "TURN")
         {
-            currentUnit->walk(0.1, false);
+            currentUnit->walk(deltaTime, false);
         }
     }
 }
@@ -483,6 +533,13 @@ void GameWorld::Item()
                 s = "Key acquired";
             }
         }
+        else if (prevWord == "TO")
+        {
+            if (std::abs(chest->getPosition().y - currentUnit->getPosition().y) < 100)
+            {
+                currentUnit->goToChest();
+            }
+        }
     }
     if (curWord == "DOOR")
     {
@@ -490,6 +547,13 @@ void GameWorld::Item()
         {
             if (std::abs(currentUnit->open().x - door->getPosition().x) < 100 && std::abs(currentUnit->open().y - door->getPosition().y) < 100 && currentUnit->getHasKey())
                 s = "Victory";
+        }
+        else if (prevWord == "TO")
+        {
+            if (std::abs(door->getPosition().y - currentUnit->getPosition().y) < 100)
+            {
+                currentUnit->goToDoor();
+            }
         }
     }
 }

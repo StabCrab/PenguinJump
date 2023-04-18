@@ -33,11 +33,19 @@ public:
     UnitState getState();
     void makeUnitOutOfBounds();
     bool getIsOutOfBounds();
-    void jumpForward();
-    void jumpBackwards();
+    void jumpForward(float deltaTime);
+    void jumpBackwards(float deltaTime);
     sf::Vector2f open();
     bool getHasKey();
     bool giveKey();
+
+    void goToChest();
+    void goToDoor();
+    void stopGoingToChest();
+    void stopGoingToDoor();
+
+    bool getGoingToChest();
+    bool getGoingToDoor();
 private:
     bool isOutOfBounds = false;
     Animation animation;
@@ -46,6 +54,9 @@ private:
     UnitState state;
     sf::Text coords;
     bool hasKey = false;
+
+    bool isGoingToChest = false;
+    bool isGoingToDoor = false;
 };
 
 

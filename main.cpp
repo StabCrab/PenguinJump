@@ -15,7 +15,9 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height),
                             "Penguin Warfare", sf::Style::Fullscreen);
     window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(60);
     window.setTitle("Penguin Warfare");
+
 
     Menu* menu = new Menu(window, isFullscreen);
     GameWorld* gameWorld;

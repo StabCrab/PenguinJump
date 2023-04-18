@@ -41,6 +41,7 @@ private:
     std::string curWord = "";
     std::string prevWord = "";
     bool isCommandsLeft = false;
+    float deltaTime;
 
     void Efunc();
     void Dir();

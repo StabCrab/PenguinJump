@@ -10,7 +10,7 @@ Player::Player(sf::Color color,sf::Font* font)
     for(int i = 0; i < UNIT_COUNTER; i++)
     {
         units[i] = new Unit("PenguinRed.png", sf::Vector2f (100, 150), 2.5,
-                            sf::Vector2u(3,9), 0.25, 50, font, color);
+                            sf::Vector2u(3,9), 0.25, 500, font, color);
     }
 //    for (int i = 0; i < WEAPONS_COUNT; i++)
 //    {
